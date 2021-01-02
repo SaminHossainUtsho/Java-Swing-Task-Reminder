@@ -2,9 +2,9 @@ package reminder;
 import com.toedter.calendar.JDateChooser;import java.awt.AWTException;import java.awt.Color;import java.awt.Container;import java.awt.Font;import java.awt.Image;import java.awt.SystemTray;import java.awt.Toolkit;import java.awt.TrayIcon;import java.awt.event.ActionEvent;import java.io.BufferedWriter;import java.io.File;import java.io.FileNotFoundException;import java.io.FileWriter;import java.io.IOException;import java.text.SimpleDateFormat;import java.util.Date;import java.util.Scanner;import javax.swing.ImageIcon;import javax.swing.JButton;import javax.swing.JComboBox;import javax.swing.JFrame;import javax.swing.JLabel;import javax.swing.JOptionPane;import javax.swing.JScrollPane;import javax.swing.JTable;import javax.swing.JTextField;import javax.swing.Timer;import javax.swing.table.DefaultTableModel;
 class Reminder extends JFrame 
 {     
-JTextField task; JLabel top_date,top_time;  JTable table,tb; DefaultTableModel model,mo; JScrollPane scroll,sc; JButton ab,db,clr,done,view,cancel; JDateChooser jdc; JComboBox hh_box,mm_box,box; Font font = new Font("Digital-7",Font.PLAIN,20),time_font = new Font("Digital-7",Font.PLAIN,38);Date dt = new Date(); SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); int i ; String col[ ] = new String[3] ,current_ap,current_time,get_ap,get_time,row[] = {"Upcoming","Date (yy-mm-dd)","Schedule"},am_pm[] = {"AM","PM"},mm[] = {"00","05","10","15","20","25","30","35","40","45","50","55"},hh[]={"12","01","02","03","04","05","06","07","08","09","10","11"};
+        JTextField task; JLabel top_date,top_time;  JTable table,tb; DefaultTableModel model,mo; JScrollPane scroll,sc; JButton ab,db,clr,done,view,cancel; JDateChooser jdc; JComboBox hh_box,mm_box,box; Font font = new Font("Digital-7",Font.PLAIN,20),time_font = new Font("Digital-7",Font.PLAIN,38);Date dt = new Date(); SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd"); int i ; String col[ ] = new String[3] ,current_ap,current_time,get_ap,get_time,row[] = {"Upcoming","Date (yy-mm-dd)","Schedule"},am_pm[] = {"AM","PM"},mm[] = {"00","05","10","15","20","25","30","35","40","45","50","55"},hh[]={"12","01","02","03","04","05","06","07","08","09","10","11"};
 Reminder()
-   {  
+{  
       Container con = this.getContentPane();  con.setLayout(null);  con.setBackground(Color.GRAY); 
       top_time = new JLabel(); top_time.setBounds(90,0,300,60);top_time.setFont(time_font);top_time.setForeground(Color.CYAN);con.add(top_time);     
 
@@ -13,7 +13,7 @@ Reminder()
           Date date = new Date();
           SimpleDateFormat time = new SimpleDateFormat("hh:mm:ss a");
           top_time.setText(time.format(date));
-          if(top_time.getText().compareTo("12:00:00 PM") == 0)
+          if(top_time.getText().compareTo("12:00:00 PM") == 0 || top_time.getText().compareTo("12:00:00 AM") == 0)
           {  
               try
               {  
@@ -59,15 +59,27 @@ ab.addActionListener((ActionEvent ae) ->
                    ImageIcon similar = new ImageIcon("Task.jpg");
                    JOptionPane.showMessageDialog(null,"Enter Task Name"," Addition Failed",JOptionPane.INFORMATION_MESSAGE,similar);
                }
-               else if(check_data(col[0],col[1],col[2]) == 0) 
+               else if(check_upcoming_data(col[0],col[1],col[2]) == 0)  //AI Features ......
                {
                    ImageIcon similar = new ImageIcon("Task.jpg");
                    JOptionPane.showMessageDialog(null,"Similar Task Found","Addition Failed",JOptionPane.INFORMATION_MESSAGE,similar);
                }                    
                else {                             
                       if(col[1].compareTo(top_date.getText()) <= 0)
+                         {    
+                             view.doClick();
+                             if(check_todo_data(col[0],col[1],col[2]) == 0)  //AI Features ......
+                               {
+                                    ImageIcon same = new ImageIcon("Task.jpg");
+                                    JOptionPane.showMessageDialog(null,"Similar Task Found","Addition Failed",JOptionPane.INFORMATION_MESSAGE,same);
+                               }
+                             else 
+                             {
+                                 mo.addRow(col);
                                  todo_file(col[0],col[1],col[2]);
-                      else { 
+                             }
+                         }
+                  else { 
                                  model.addRow(col); 
                                  try {   
                                           FileWriter fw  = new FileWriter("upcoming.txt",true);
@@ -76,7 +88,7 @@ ab.addActionListener((ActionEvent ae) ->
                                                   bw.write(col[0]+" "+col[1]+" "+col[2]+"\n"); 
                                               } 
                                        } catch (IOException ex){ } 
-                             } 
+                         } 
                    } 
 task.requestFocusInWindow();
 notify_me();
@@ -136,11 +148,11 @@ view.addActionListener((ActionEvent ae1) ->
                    mo.addRow(kol);
             }  
           }
-          else
+          /*else
                {
                    ImageIcon chill = new ImageIcon("CHILL.jpg");
 JOptionPane.showMessageDialog(null,"Nothing Todo Today","Good News \u263A \u263A \u263A",JOptionPane.INFORMATION_MESSAGE,chill);                   
-               }
+               }*/
          }
      catch (FileNotFoundException ex){ }                      
 sc.requestFocusInWindow();           
@@ -163,10 +175,19 @@ done.addActionListener((ActionEvent ae) -> {
 cancel.addActionListener((ActionEvent ae) -> {  tb.clearSelection();  sc.requestFocusInWindow();  });  
 task.requestFocusInWindow(); });
 }  
-private int check_data(String task,String date,String time) {    // SIMPLE AI TECHNOLOGY
+private int check_upcoming_data(String task,String date,String time) {    // SIMPLE AI TECHNOLOGY
             for(i=0; i<table.getRowCount();i++)
                 { 
                    if(task.equals(table.getValueAt(i, 0))  &&  date.equals(table.getValueAt(i, 1))  && time.equals(table.getValueAt(i, 2)) )
+                   return 0;
+                }
+    return 1;
+}
+
+private int check_todo_data(String task,String date,String time) {    // SIMPLE AI TECHNOLOGY
+            for(i=0; i<tb.getRowCount();i++)
+                { 
+                   if(task.equals(tb.getValueAt(i, 0))  &&  date.equals(tb.getValueAt(i, 1)) && time.equals(tb.getValueAt(i, 2)))
                    return 0;
                 }
     return 1;
@@ -175,9 +196,15 @@ private void notify_me()
 {
     File look = new File("todo.txt");
     if(look.length() == 0)
-        view.setText("\u279C");
+    {
+        view.setText("\u2714");
+        view.setBackground(Color.green);
+    }
     else
-        view.setText("\u24C2");
+    {
+        view.setText("\u2716");
+        view.setBackground(Color.red);
+    }
 }
 
 private void update_upcoming_file() {
